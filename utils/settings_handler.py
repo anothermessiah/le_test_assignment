@@ -1,11 +1,13 @@
 from __future__ import annotations
 
-import json
 from dataclasses import dataclass
-from typing import Any, Dict
+from typing import Optional
+
+from _pytest.config import Config as PytestConfig
 
 from constants.constants import (
-    CONFIG_PATH,
+    Environment,
+    ENV_BASE_URLS,
     SUPPORTED_BROWSERS,
     DEFAULT_ENV,
     DEFAULT_BROWSER,
@@ -13,89 +15,80 @@ from constants.constants import (
 )
 
 
-@dataclass
+@dataclass(frozen=True)
 class Settings:
-    env: str
+    env: Environment
     base_url: str
     browser: str
     headless: bool
 
 
-def load_config_file() -> Dict[str, Any]:
+def _resolve_env(cli_env: Optional[str]) -> Environment:
     """
-    Load JSON config with environment profiles.
-    Returns empty dict if config file does not exist.
+    Resolve environment name from CLI or fallback to DEFAULT_ENV.
     """
-    if not CONFIG_PATH.exists():
-        return {}
+    if not cli_env:
+        return DEFAULT_ENV
 
+    name = cli_env.lower()
     try:
-        with CONFIG_PATH.open(encoding="utf-8") as f:
-            return json.load(f)
-    except json.JSONDecodeError as e:
-        raise RuntimeError(f"Invalid JSON config at {CONFIG_PATH}: {e}") from e
+        return Environment(name)
+    except ValueError:
+        valid = ", ".join(e.value for e in Environment)
+        raise ValueError(f"Unknown environment '{name}'. Supported values: {valid}")
 
 
-def build_settings(pytestconfig) -> Settings:
+def _resolve_browser(cli_browser: Optional[str]) -> str:
     """
-    Resolve final Settings using:
-
-    1) Environment name from CLI: --env-name (preferred)
-       If not provided, DEFAULT_ENV is used.
-
-    2) Environment profile from config/config.json:
-       {
-         "local": { "base_url": "...", "browser": "...", "headless": true },
-         ...
-       }
-
-    3) Optional overrides from CLI:
-       --app-base-url  (overrides profile's base_url)
-       --app-browser   (overrides profile's browser)
-       --app-headed    (forces headed mode, overrides 'headless' flag)
+    Resolve browser from CLI or fallback to DEFAULT_BROWSER.
     """
-    raw_cfg = load_config_file()
-
-    # 1) Resolve environment name
-    env_cli = pytestconfig.getoption("--env-name")
-    env = env_cli or DEFAULT_ENV
-
-    env_cfg: Dict[str, Any] = raw_cfg.get(env, {})
-    if not env_cfg:
-        raise RuntimeError(
-            f"Environment '{env}' is not defined in {CONFIG_PATH}. "
-            "Please add it to config.json or choose another env-name."
-        )
-
-    # 2) base_url: CLI override or value from profile
-    base_url_cli = pytestconfig.getoption("--app-base-url")
-    base_url_cfg = env_cfg.get("base_url")
-    base_url = base_url_cli or base_url_cfg
-    if not base_url:
-        raise RuntimeError(
-            "Base URL is not provided. "
-            "Pass --app-base-url or define 'base_url' "
-            f"for environment '{env}' in {CONFIG_PATH}."
-        )
-
-    # 3) browser: CLI override or value from profile or default
-    browser_cli = pytestconfig.getoption("--app-browser")
-    browser_cfg = env_cfg.get("browser", DEFAULT_BROWSER)
-    browser = (browser_cli or browser_cfg).lower()
-    if browser not in SUPPORTED_BROWSERS:
-        raise RuntimeError(
-            f"Unsupported browser '{browser}'. "
-            f"Supported values: {', '.join(sorted(SUPPORTED_BROWSERS))}"
-        )
-
-    # 4) headless: profile or default, overridden by --app-headed if set
-    headed_cli = pytestconfig.getoption("--app-headed")
-    headless_cfg = bool(env_cfg.get("headless", DEFAULT_HEADLESS))
-
-    if headed_cli is True:
-        headless = False
+    if cli_browser:
+        candidate = cli_browser.lower()
     else:
-        headless = headless_cfg
+        candidate = DEFAULT_BROWSER
+
+    if candidate not in SUPPORTED_BROWSERS:
+        supported = ", ".join(sorted(SUPPORTED_BROWSERS))
+        raise ValueError(
+            f"Unsupported browser '{candidate}'. Supported browsers: {supported}"
+        )
+    return candidate
+
+
+def _resolve_headless(cli_headed: bool) -> bool:
+    """
+    Resolve headless mode. CLI flag --app-headed has priority.
+    """
+    if cli_headed:
+        return False
+    return DEFAULT_HEADLESS
+
+
+def build_settings(pytest_config: PytestConfig) -> Settings:
+    """
+    Build Settings from:
+    1. CLI options
+    2. defaults from constants
+    """
+    cli_env = pytest_config.getoption("--env-name")
+    cli_browser = pytest_config.getoption("--app-browser")
+    cli_headed = bool(pytest_config.getoption("--app-headed"))
+    cli_base_url = pytest_config.getoption("--app-base-url")
+
+    env = _resolve_env(cli_env)
+
+    # base_url: CLI override > mapping from Environment
+    if cli_base_url:
+        base_url = cli_base_url
+    else:
+        base_url = ENV_BASE_URLS.get(env)
+        if not base_url:
+            raise RuntimeError(
+                f"No base URL configured for environment '{env.value}'."
+            )
+
+    browser = _resolve_browser(cli_browser)
+    headless = _resolve_headless(cli_headed)
 
     return Settings(
         env=env,

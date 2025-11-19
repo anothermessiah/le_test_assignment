@@ -18,7 +18,7 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         "--env-name",
         action="store",
         default=None,
-        help="Environment name: local | staging | prod. Default is defined in utils/constants.py.",
+        help="Environment name: local | staging | prod.",
     )
     group.addoption(
         "--app-base-url",
@@ -30,13 +30,13 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         "--app-browser",
         action="store",
         default=None,
-        help="Override browser for the selected environment: chromium | firefox | webkit.",
+        help="Override browser: chromium | firefox | webkit.",
     )
     group.addoption(
         "--app-headed",
         action="store_true",
         default=None,
-        help="Run browser in headed mode (overrides 'headless' from config).",
+        help="Run browser in headed mode.",
     )
 
 
