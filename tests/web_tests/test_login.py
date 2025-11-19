@@ -22,5 +22,4 @@ class TestLogin:
         login_page = LoginPage(page)
         login_page.open()
         login_page.login("wrong-user", "wrong-pass")
-        login_page.submit()
         login_page.assert_login_failed()

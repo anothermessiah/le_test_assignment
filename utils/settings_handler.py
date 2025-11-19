@@ -4,15 +4,12 @@ import json
 from dataclasses import dataclass
 from typing import Any, Dict
 
-from playwright.sync_api import Page
-
 from constants.constants import (
     CONFIG_PATH,
     SUPPORTED_BROWSERS,
     DEFAULT_ENV,
     DEFAULT_BROWSER,
     DEFAULT_HEADLESS,
-    DEFAULT_TIMEOUT_MS,
 )
 
 
@@ -106,31 +103,3 @@ def build_settings(pytestconfig) -> Settings:
         browser=browser,
         headless=headless,
     )
-
-
-# ---------- generic helpers for Page Objects ----------
-
-
-def open_relative(page: Page, path: str) -> None:
-    """
-    Open URL relative to base_url configured in browser context.
-    """
-    page.goto(path)
-
-
-def assert_title_contains(page: Page, fragment: str) -> None:
-    """
-    Assert that current page title contains the given fragment.
-    """
-    title = page.title()
-    assert fragment in title, (
-        f"Expected page title to contain '{fragment}', "
-        f"but got '{title}'."
-    )
-
-
-def wait_for_url_contains(page: Page, fragment: str, timeout_ms: int = DEFAULT_TIMEOUT_MS) -> None:
-    """
-    Wait until current URL contains the given fragment.
-    """
-    page.wait_for_url(f"**{fragment}**", timeout=timeout_ms)
