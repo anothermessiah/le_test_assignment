@@ -10,7 +10,7 @@ class TestLogin:
         """
         login_page = LoginPage(page)
         login_page.open()
-        login_page.login_with_valid_credentials()
+        login_page.login()
         login_page.assert_login_succeeded()
 
 
@@ -21,6 +21,6 @@ class TestLogin:
         """
         login_page = LoginPage(page)
         login_page.open()
-        login_page.fill_credentials("wrong-user", "wrong-pass")
+        login_page.login("wrong-user", "wrong-pass")
         login_page.submit()
         login_page.assert_login_failed()

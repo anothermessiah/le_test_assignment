@@ -34,8 +34,8 @@ class LoginPage(BasePage):
     def submit(self) -> None:
         self.page.locator(self._SUBMIT_BUTTON).click()
 
-    def login_with_valid_credentials(self) -> None:
-        self.fill_credentials(self._VALID_USERNAME, self._VALID_PASSWORD)
+    def login(self, login = _VALID_USERNAME, password = _VALID_PASSWORD) -> None:
+        self.fill_credentials(login, password)
         self.submit()
 
     def assert_login_failed(self) -> None:
