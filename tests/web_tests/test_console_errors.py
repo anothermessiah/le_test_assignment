@@ -1,7 +1,7 @@
 from playwright.sync_api import Page
 
 
-def test_console_errors(page: Page, base_url: str) -> None:
+def test_console_errors(page: Page, settings) -> None:
     console_messages = []
     page_errors = []
 
@@ -11,7 +11,7 @@ def test_console_errors(page: Page, base_url: str) -> None:
     page.on("console", handle_console)
     page.on("pageerror", lambda exc: page_errors.append(str(exc)))
 
-    page.goto(base_url, wait_until="networkidle")
+    page.goto(settings.base_url, wait_until="networkidle")
 
     error_messages = []
     for msg in console_messages:
