@@ -2,30 +2,41 @@ name: Run Python Tests
 
 on:
   push:
-    branches: [ "main", "master" ]
+    branches: [master, main]
   pull_request:
-    branches: [ "main", "master" ]
+    branches: [master, main]
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   test:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check out repo
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
-          python-version: '3.9'
+          python-version: "3.9"
 
-      - name: Install dependencies
-        run: |
+      - run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          python -m playwright install
+          python -m playwright install --with-deps
 
-      - name: Run tests
-        run: |
-          pytest --maxfail=1 --disable-warnings --tb=short
+      - run: pytest --env-name=prod
+
+      - if: always()
+        uses: simple-elf/allure-report-action@v1
+        with:
+          allure_results: allure-results
+          allure_report: allure-report
+
+      - if: always() && github.event_name != 'pull_request' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main')
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: allure-report
