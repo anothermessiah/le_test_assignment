@@ -30,5 +30,5 @@ def test_console_errors(page: Page, base_url: str) -> None:
         )
 
     assert not error_messages, (
-        "Найдены ошибки в консоли/на странице:\n" + "\n".join(error_messages)
+        "Errors were found:\n" + "\n".join(error_messages)
     )
