@@ -1,13 +1,13 @@
 "DESCRIPTION","DURATION IN MS","NAME","PARENT SUITE","START TIME","STATUS","STOP TIME","SUB SUITE","SUITE","TEST CLASS","TEST METHOD"
 "
-        As a customer, I want to verify I can log in with valid credentials.
-        ","250","test_login_with_valid_credentials","tests.web_tests","2025-12-14","passed","2025-12-14","TestLogin","test_login","",""
-"","523","test_console_errors","tests.web_tests","2025-12-14","passed","2025-12-14","","test_console_errors","",""
-"
     As a tester, I want to check that all links on the home page
     return 2xx or 3xx status codes, and no 4xx responses.
-    ","388","test_all_links_return_ok_or_redirect","tests.api_tests","2025-12-14","passed","2025-12-14","","test_api","",""
+    ","195","test_all_links_return_ok_or_redirect","tests.api_tests","2025-12-14","passed","2025-12-14","","test_api","",""
 "
         As a customer, I want to see a proper error message
         when I enter invalid credentials.
-        ","93","test_login_with_invalid_credentials","tests.web_tests","2025-12-14","passed","2025-12-14","TestLogin","test_login","",""
+        ","106","test_login_with_invalid_credentials","tests.web_tests","2025-12-14","passed","2025-12-14","TestLogin","test_login","",""
+"","526","test_console_errors","tests.web_tests","2025-12-14","passed","2025-12-14","","test_console_errors","",""
+"
+        As a customer, I want to verify I can log in with valid credentials.
+        ","137","test_login_with_valid_credentials","tests.web_tests","2025-12-14","passed","2025-12-14","TestLogin","test_login","",""
